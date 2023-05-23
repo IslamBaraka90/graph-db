@@ -48,11 +48,6 @@ class Neo4jClient
         if (!isset($config['password'])) {
             throw new \InvalidArgumentException('Missing password configuration');
         }
-        //check if the url include the database name or not add it if not
-        //Removed due an error in connection
-//        if (strpos($config['url'], '?database=') === false) {
-//            $config['url'] = $config['url'] ;
-//        }
         $this->config = $config;
     }
 
@@ -112,6 +107,15 @@ class Neo4jClient
             $nodes[] = $record->get($nodeName);
         }
         return $nodes;
+    }
+
+    public function extractRelations(SummarizedResult $result, $relationName): array
+    {
+        $relations = [];
+        foreach ($result->getResults() as $record) {
+            $relations[] = $record->get($relationName);
+        }
+        return $relations;
     }
 
 }
