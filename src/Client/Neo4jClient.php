@@ -104,4 +104,14 @@ class Neo4jClient
         return $text;
     }
 
+
+    function extractNodes(SummarizedResult $result,$nodeName): array
+    {
+        $nodes = [];
+        foreach ($result->getResults() as $record) {
+            $nodes[] = $record->get($nodeName);
+        }
+        return $nodes;
+    }
+
 }

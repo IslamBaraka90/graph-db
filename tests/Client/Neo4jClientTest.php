@@ -37,4 +37,14 @@ class Neo4jClientTest extends TestCase
         //assert that the response contain the query MATCH (q:Question) RETURN q LIMIT 5
         $this->assertStringContainsString('MATCH (q:Question) RETURN q LIMIT 5', $client->summaryText($results));
     }
+
+    public function testExtractNodes(){
+        $client = self::$client;
+        $results = $client->run('MATCH (q:Question) RETURN q LIMIT 5');
+        $nodes = $client->extractNodes($results, 'q');
+        //assert that the response contain the query MATCH (q:Question) RETURN q LIMIT 5
+        $this->assertStringContainsString('MATCH (q:Question) RETURN q LIMIT 5', $client->summaryText($results));
+        //assert that the response contain 5 nodes as the limit is 5
+        $this->assertCount(5, $nodes);
+    }
 }
