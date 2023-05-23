@@ -8,19 +8,13 @@ use PHPUnit\Framework\TestCase;
 class Neo4jClientTest extends TestCase
 {
 
-    public function test__construct()
+    protected static Neo4jClient $client;
+    public static function setUpBeforeClass(): void
     {
+        // Set up your database connection here
         //load configuration from .env file in the root directory
         $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
         $dotenv->load();
-//        $configuration = [
-//            'url' => 'neo4j+s://4cfe0d8e.databases.neo4j.io?database=Instance01',
-//            'dbname' => 'Instance01',
-//            'username' => 'neo4j',
-//            'password' => 'N56n8rQBuDexj4tBk8M9TN8V_M8gCbrUZkbhr7kdJL4'
-//        ];
-
-
         $configuration = [
             'url' => $_ENV['NEO4J_URL'],
             'dbname' => $_ENV['NEO4J_DATABASE'],
@@ -29,7 +23,18 @@ class Neo4jClientTest extends TestCase
         ];
 
         $neo4jClient = new Neo4jClient($configuration);
-        die(var_dump($neo4jClient));
-        $this->assertInstanceOf('Islambaraka90\GraphDb\Client\Neo4jClient', $neo4jClient);
+        self::$client = $neo4jClient;
+    }
+
+    public function test__construct()
+    {
+        $this->assertInstanceOf('Islambaraka90\GraphDb\Client\Neo4jClient', self::$client);
+    }
+
+    public function testRun(){
+        $client = self::$client;
+        $results = $client->run('MATCH (q:Question) RETURN q LIMIT 5');
+        //assert that the response contain the query MATCH (q:Question) RETURN q LIMIT 5
+        $this->assertStringContainsString('MATCH (q:Question) RETURN q LIMIT 5', $client->summaryText($results));
     }
 }
