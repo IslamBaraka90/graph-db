@@ -11,6 +11,7 @@ use Islambaraka90\GraphDb\Cypher\Clause\RemoveClause;
 use Islambaraka90\GraphDb\Cypher\Clause\ReturnClause;
 
 use Islambaraka90\GraphDb\Cypher\Clause\SetClause;
+use Islambaraka90\GraphDb\Cypher\Clause\SkipClause;
 use Islambaraka90\GraphDb\Cypher\Clause\UnwindClause;
 use Islambaraka90\GraphDb\Cypher\Clause\WhereClause;
 use Islambaraka90\GraphDb\Cypher\Clause\WithClause;
@@ -342,6 +343,31 @@ class Test extends TestCase
 
         $this->assertEquals($expected, $actual);
     }
+
+
+    public function testSkipClause()
+    {
+        $pattern = [
+            ['node' => ['alias' => 'n', 'label' => 'Person']],
+        ];
+
+        $expression = 'n.age';
+        $alias = 'age';
+
+        $queryBuilder = new CypherQueryBuilder();
+        $queryBuilder->addClause(new MatchClause($pattern));
+        $queryBuilder->addClause(new UnwindClause($expression, $alias));
+        $queryBuilder->addClause(new ReturnClause('n.name , age'));
+        $queryBuilder->addClause(new OrderByClause('age'));
+        $queryBuilder->addClause(new SkipClause(5));
+
+        $expected = 'MATCH (n:Person) UNWIND n.age AS age RETURN n.name , age ORDER BY age SKIP 5';
+        $actual = $queryBuilder->getQuery()->toCypher();
+
+        $this->assertEquals($expected, $actual);
+    }
+
+
 
 
 
