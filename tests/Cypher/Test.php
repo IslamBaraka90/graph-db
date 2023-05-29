@@ -6,11 +6,14 @@ use Islambaraka90\GraphDb\Cypher\Clause\Conditions;
 use Islambaraka90\GraphDb\Cypher\Clause\CreateClause;
 use Islambaraka90\GraphDb\Cypher\Clause\DetachDeleteClause;
 use Islambaraka90\GraphDb\Cypher\Clause\MatchClause;
+use Islambaraka90\GraphDb\Cypher\Clause\OrderByClause;
 use Islambaraka90\GraphDb\Cypher\Clause\RemoveClause;
 use Islambaraka90\GraphDb\Cypher\Clause\ReturnClause;
 
 use Islambaraka90\GraphDb\Cypher\Clause\SetClause;
+use Islambaraka90\GraphDb\Cypher\Clause\UnwindClause;
 use Islambaraka90\GraphDb\Cypher\Clause\WhereClause;
+use Islambaraka90\GraphDb\Cypher\Clause\WithClause;
 use Islambaraka90\GraphDb\Cypher\CypherQueryBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -276,6 +279,73 @@ class Test extends TestCase
 
         $this->assertEquals($expected, $actual);
     }
+
+
+    public function testWithClause()
+    {
+        $pattern = [
+            ['node' => ['alias' => 'n', 'label' => 'Person']],
+            ['node' => ['alias' => 'L', 'label' => 'Person', 'properties' => ['name' => 'John']]],
+        ];
+
+        $variables = ['n', 'L'];
+
+        $queryBuilder = new CypherQueryBuilder();
+        $queryBuilder->addClause(new MatchClause($pattern));
+        $queryBuilder->addClause(new WithClause($variables));
+
+        $expected = 'MATCH (n:Person), (L:Person {name: \'John\'}) WITH n, L';
+        $actual = $queryBuilder->getQuery()->toCypher();
+
+        $this->assertEquals($expected, $actual);
+    }
+
+
+    public function testUnwindClause()
+    {
+        $pattern = [
+            ['node' => ['alias' => 'n', 'label' => 'Person']],
+        ];
+
+        $expression = 'n.age';
+        $alias = 'age';
+
+        $queryBuilder = new CypherQueryBuilder();
+        $queryBuilder->addClause(new MatchClause($pattern));
+        $queryBuilder->addClause(new UnwindClause($expression, $alias));
+        $queryBuilder->addClause(new ReturnClause('n.name , age' ));
+
+        $expected = 'MATCH (n:Person ) UNWIND n.age AS age RETURN n.name , age';
+        $actual = $queryBuilder->getQuery()->toCypher();
+
+        $this->assertEquals($expected, $actual);
+    }
+
+
+    public function testOrderByClause()
+    {
+        $pattern = [
+            ['node' => ['alias' => 'n', 'label' => 'Person']],
+        ];
+
+        $expression = 'n.age';
+        $alias = 'age';
+
+        $queryBuilder = new CypherQueryBuilder();
+        $queryBuilder->addClause(new MatchClause($pattern));
+        $queryBuilder->addClause(new UnwindClause($expression, $alias));
+        $queryBuilder->addClause(new ReturnClause('n.name , age'));
+        $queryBuilder->addClause(new OrderByClause('age'));
+
+        $expected = 'MATCH (n:Person) UNWIND n.age AS age RETURN n.name , age ORDER BY age';
+        $actual = $queryBuilder->getQuery()->toCypher();
+
+        $this->assertEquals($expected, $actual);
+    }
+
+
+
+
 
     public function testReturnClause()
     {
